@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPS QR Generator</title>
+    <link rel="icon" type="image/x-icon" href="https://ips.nbs.rs/favicon.ico">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* MODERN UI STILOVI */
+        :root {
+            --primary-dark: #21425d; /* NOVO: Tamnija boja za naslov */
+            --primary-red: #c82333; /* NOVO: Tamnocrvena za zvezdicu */
+            --light-blue: #007bff;
+            --darker-blue: #0069d9; 
+            --background-grey: #f0f2f5;
+            --success-green: #155724;
+            --success-bg: #d4edda;
+            --border-color: #e0e0e0;
+            --input-focus: #b8d6ff;
+        }
+        
+        /* FIKS ZA SCROLLING / ANIMACIJE */
+        html {
+            scroll-behavior: smooth;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            padding: 20px; 
+            background-color: var(--background-grey); 
+            line-height: 1.5;
+        }
+        
+        .container { 
+            max-width: 550px; 
+            margin: 30px auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+        }
+        
+        /* NOVI STIL ZA CENTRALIZACIJU LOGO I TEKSTA */
+        .header-content {
+            display: flex;
+            align-items: center; 
+            justify-content: center;
+            gap: 15px; 
+            margin-bottom: 20px;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 { 
+            color: var(--primary-dark); /* NOVO */
+            text-align: left; 
+            margin: 0; 
+            font-size: 26px; 
+            font-weight: 600; 
+        }
+        
+        /* NOVO: Podnaslov za verziju */
+        .subtitle {
+            font-size: 14px;
+            color: #6c757d; 
+            margin: 0;
+            line-height: 1.2;
+            font-weight: 400;
+        }
+
+        /* STILIZACIJA LOGOA */
+        .logo-img {
+            height: 70px; 
+            width: auto; 
+            /* margin-right je premešten u gap: 15px na header-content */
+            /* Senka za bolju vidljivost belog dela loga */
+            filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.25)); 
+        }
+        
+        /* Uputstvo je uklonjeno na zahtev */
+
+        /* FORME */
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { 
+            display: block; 
+            font-weight: 500; 
+            margin-bottom: 4px; 
+            color: #333;
+        }
+        .label-hint { font-weight: normal; color: #666; font-size: 14px; }
+
+        .form-group input, .form-group textarea { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 16px; /* FIKS: Povećano na 16px da spreči neželjeno zumiranje na iOS-u */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        /* Focus state za Input */
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: var(--light-blue);
+            box-shadow: 0 0 0 3px var(--input-focus);
+            outline: none;
+        }
+
+        /* NOVO: Tamnocrvena zvezdica za obavezna polja */
+        .required::after { content: " *"; color: var(--primary-red); font-weight: bold; }
+
+        /* DVA POLJA U ISTOM REDU (Desktop/Tablet) */
+        .two-fields-row {
+            display: flex;
+            gap: 15px; 
+        }
+        .two-fields-row .form-group {
+            flex: 1; 
+        }
+
+        /* NOVI STIL ZA FIKSNI RSD */
+        .input-with-suffix {
+            position: relative;
+            display: flex; 
+            align-items: center; 
+        }
+
+        .input-with-suffix input {
+            padding-right: 55px; 
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 12px;
+            color: #999; 
+            font-size: 16px; 
+            font-weight: 500;
+            pointer-events: none; 
+        }
+        
+        /* GLAVNO DUGME ZA GENERISANJE */
+        button { 
+            padding: 12px 15px; 
+            background-color: var(--light-blue); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            width: 100%; 
+            margin-top: 20px; 
+            margin-bottom: 20px; 
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        button:hover { 
+            background-color: var(--darker-blue); 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        
+        /* QR OUTPUT CARD (Kartica za rezultat) */
+        #qrOutput { 
+            text-align: center; 
+            margin-top: 0px; 
+            padding: 0px; 
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden; 
+            margin-bottom: 5px; 
+        }
+        
+        #qrImage { 
+            max-width: 100%; 
+            height: auto; 
+            padding: 0; 
+            margin: 0 auto; 
+            background: transparent; 
+            display: block; 
+        }
+
+        /* STILIZACIJA PORUKA */
+        .message-box {
+            margin-top: 0;
+            margin-bottom: 0; 
+            padding: 10px;
+        }
+
+        .error { 
+            color: #721c24; 
+            background-color: #f8d7da; 
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            border-top: 1px solid #f5c6cb;
+        }
+        .success-highlight { 
+            color: var(--success-green); 
+            background-color: var(--success-bg); 
+            border: none; 
+            border-top: 1px solid #c3e6cb; 
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 0; 
+        }
+
+        /* STILOVI ZA AKCIJSKE DUGMIĆE (Izvan QR Output-a) */
+        .action-buttons-row {
+            display: flex;
+            flex-direction: column; /* Uvek kolona za puno poravnanje (stacking) */
+            padding: 0;
+            margin-top: 5px; 
+            background-color: transparent; 
+            border: none; 
+            gap: 8px; /* Razmak između dugmića */
+        }
+        
+        .action-buttons-row button {
+            flex: 1; 
+            margin: 0; /* FIKS: Uklonjene sve spoljne margine za stacking */
+            padding: 10px 10px;
+            font-size: 16px;
+            font-weight: 500;
+            background-color: var(--light-blue); 
+            color: white; 
+            border: 1px solid var(--light-blue);
+            border-radius: 6px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            width: 100%; 
+            margin-top: 0; 
+            margin-bottom: 0; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Povećan razmak između ikone i teksta */
+        }
+        
+        .action-buttons-row button:hover {
+            background-color: var(--darker-blue); 
+            color: white;
+            border-color: var(--darker-blue);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+        }
+
+        /* ================================================= */
+        /* MEDIA QUERY ZA MOBILNE UREĐAJE (< 600px) */
+        /* ================================================= */
+        @media (max-width: 600px) {
+            body {
+                padding: 0; 
+                background-color: white; 
+            }
+
+            .container {
+                max-width: 100%; 
+                margin: 0 auto; 
+                padding: 20px 15px; 
+                border-radius: 0; 
+                box-shadow: none; 
+            }
+            
+            /* STACKING DVA POLJA */
+            .two-fields-row {
+                flex-direction: column; 
+                gap: 0; 
+            }
+            
+            /* Dodatno smanjenje margina na mobilnom radi veće kompaktnosti */
+            .form-group { margin-bottom: 10px; }
+            button { margin-top: 15px; margin-bottom: 15px; }
+            
+            .logo-img {
+                height: 55px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-content">
+        <img src="IPS-logo.svg" alt="IPS Logo" class="logo-img">
+        <div class="header-text">
+            <h1>IPS QR generator</h1> <p class="subtitle">v1.1 - by Bojan Mijić</p> </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="racunInput" class="required">Račun primaoca <span class="label-hint">(npr. 205-140468-52):</span></label>
+        <input type="tel" id="racunInput" value="265-676766-16" placeholder="Broj računa" oninput="clearFormatting(this)" onblur="formatRacunDisplay(this)">
+    </div>
+
+    <div class="form-group">
+        <label for="iznosInput" class="required">Iznos: <span class="label-hint">(npr. 1.020,00 RSD):</span></label>
+        <div class="input-with-suffix">
+            <input 
+                type="text" 
+                id="iznosInput" 
+                value="1020,00" 
+                placeholder="Iznos u formatu 1.020,00" 
+                inputmode="decimal" 
+                pattern="[0-9]*[.,]?[0-9]*"
+                onblur="formatIznosFrontend(this)" 
+                onfocus="clearFormatting(this)"
+            >
+            <span class="input-suffix">RSD</span>
+        </div>
+    </div>
+    
+    <div class="two-fields-row">
+        <div class="form-group">
+            <label for="imePrimaocaInput" class="required">Ime primaoca:</label>
+            <input type="text" id="imePrimaocaInput" value="Bojan Mijić" placeholder="Ime/Naziv firme">
+        </div>
+        <div class="form-group">
+            <label for="adresaPrimaocaInput">Adresa primaoca:</label>
+            <input type="text" id="adresaPrimaocaInput" value="Nikolaja Gogolja 94" placeholder="Adresa">
+        </div>
+    </div>
+
+    <button onclick="generateQRCode()">Generiši QR Kod</button>
+
+    <div id="qrOutput" style="display: none;">
+        <img id="qrImage" src="" alt="Ovde će se pojaviti QR Kod" style="display: none;">
+        <p id="message" class="message-box"></p>
+    </div>
+    <div class="action-buttons-row" id="actionButtons" style="display: none;">
+        <button onclick="saveImage()">
+            <i class="fas fa-download"></i> 
+            Sačuvaj sliku
+        </button>
+        <button onclick="copyShareLink()">
+            <i class="fa-solid fa-clipboard"></i> 
+            Kopiraj link
+        </button>
+        <button onclick="nativeShare()">
+            <i class="fa-solid fa-share-nodes"></i> 
+            Podeli link </button>
+    </div>
+    </div>
+
+<script>
+const APISettings = {
+    K: "PR", V: "01", C: "1", R: "265000000067676616", I: "RSD1020,00", SF: "289", S: "Uplata na račun", RO: "0000", N: "Bojan Mijić\nNikolaja Gogolja 94"
+};
+
+// =========================================================
+// POMOĆNE FUNKCIJE: BASE64, DIJAKRITICI, FORMATIRANJE
+// =========================================================
+
+/**
+ * Enkodira JavaScript objekat u Base64 string.
+ */
+function encodeData(data) {
+    const jsonString = JSON.stringify(data);
+    return btoa(encodeURIComponent(jsonString));
+}
+
+/**
+ * Dekodira Base64 string nazad u JavaScript objekat.
+ */
+function decodeData(base64String) {
+    try {
+        const jsonString = decodeURIComponent(atob(base64String));
+        return JSON.parse(jsonString);
+    } catch (e) {
+        console.error("Dekodiranje Base64 payload-a nije uspelo:", e);
+        return null;
+    }
+}
+
+
+function cleanDiacritics(text) {
+    if (!text) return '';
+    let cleaned = text.toLowerCase();
+    
+    cleaned = cleaned
+        .replace(/č/g, 'c')
+        .replace(/ć/g, 'c')
+        .replace(/š/g, 's')
+        .replace(/ž/g, 'z')
+        .replace(/đ/g, 'dj');
+    
+    cleaned = cleaned.replace(/\s+/g, '-');
+    cleaned = cleaned.replace(/[^a-z0-9-]/g, '');
+    cleaned = cleaned.replace(/-+/g, '-');
+    
+    return cleaned.replace(/^-+|-+$/g, '');
+}
+
+
+/**
+ * Pomoćna funkcija za uklanjanje frontend formatiranja (tačke/zarezi) sa Iznosa.
+ */
+function clearFormatting(inputElement) {
+    if (inputElement.id === 'iznosInput') {
+        let value = inputElement.value.replace(/\./g, ''); 
+        value = value.replace(/,/g, '.');
+        
+        const numberMatch = value.match(/^-?\d+(\.\d{1,2})?/);
+        inputElement.value = numberMatch ? numberMatch[0] : value.replace(/[^\d.]/g, '');
+    }
+}
+
+/**
+ * Formatira iznos za prikaz na frontendu (npr. 1234.56 postaje 1.234,56)
+ */
+function formatIznosFrontend(inputElement) {
+    let value = inputElement.value;
+    
+    value = value.replace(/[^\d.,]/g, ''); 
+    
+    let parts = value.split(/[.,]/);
+    if (parts.length > 1) {
+        value = parts.slice(0, -1).join('') + '.' + parts.slice(-1).join('');
+    } else {
+        value = parts[0];
+    }
+    
+    let parsedIznos = parseFloat(value);
+    
+    if (isNaN(parsedIznos)) {
+        inputElement.value = '';
+        return;
+    }
+    
+    const formattedValue = parsedIznos.toLocaleString('sr-RS', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    });
+    
+    inputElement.value = formattedValue;
+}
+
+/**
+ * Funkcija za API: Vraća čist 18-cifreni broj računa (sa nula-paddingom).
+ */
+function formatRacun(input) {
+    const digits = input.replace(/[^0-9]/g, ''); 
+    
+    if (digits.length < 5) {
+        return digits.padEnd(5, '0').substring(0, 5);
+    }
+
+    const bankCode = digits.substring(0, 3);
+    let coreAndControl = digits.substring(3);
+
+    coreAndControl = coreAndControl.substring(0, 15);
+    
+    const coreLength = coreAndControl.length - 2; 
+    const core = coreAndControl.substring(0, coreLength);
+    const control = coreAndControl.substring(coreLength);
+
+    const paddedCore = core.padStart(13, '0').substring(0, 13);
+    
+    return bankCode + paddedCore + control.padEnd(2, '0').substring(0, 2);
+}
+
+/**
+ * Vraća broj računa formatiran sa crticama za prikaz/naziv fajla.
+ */
+function getDashedRacun(clean18Digits) {
+    if (clean18Digits.length !== 18) {
+        return clean18Digits;
+    }
+    const displayBankCode = clean18Digits.substring(0, 3);
+    const displayMiddle = clean18Digits.substring(3, 16); // 13 cifara
+    const displayControlCode = clean18Digits.substring(16, 18); // 2 cifre
+
+    return `${displayBankCode}-${displayMiddle}-${displayControlCode}`;
+}
+
+
+/**
+ * Formatira broj računa za PRIKAZ na frontendu (sa crticama) - pokreće se na onblur.
+ */
+function formatRacunDisplay(inputElement) {
+    const clean18Digits = formatRacun(inputElement.value);
+    
+    if (clean18Digits.length !== 18) {
+        inputElement.value = clean18Digits;
+        return;
+    }
+
+    inputElement.value = getDashedRacun(clean18Digits);
+}
+
+
+function generateJsonData() {
+    const racun = document.getElementById('racunInput').value.trim();
+    const iznosInput = document.getElementById('iznosInput').value.trim();
+    const ime = document.getElementById('imePrimaocaInput').value.trim(); 
+    const adresa = document.getElementById('adresaPrimaocaInput').value.trim(); 
+    
+    if (!racun || !iznosInput || !ime) {
+        return null; 
+    }
+    
+    let apiIznos = iznosInput.replace(/[^\d.,]/g, '');
+    let parts = apiIznos.split(/[.,]/);
+    if (parts.length > 1) {
+        apiIznos = parts.slice(0, -1).join('') + '.' + parts.slice(-1).join('');
+    } else {
+        apiIznos = parts[0];
+    }
+    let parsedIznos = parseFloat(apiIznos);
+    if (isNaN(parsedIznos)) {
+        return null; 
+    }
+    let formattedIznos = `RSD${parsedIznos.toFixed(2).replace('.', ',')}`;
+    
+    const formattedRacun = formatRacun(racun);
+    
+    let qrJsonData = {
+        K: APISettings.K, V: APISettings.V, C: APISettings.C, R: formattedRacun,
+        I: formattedIznos, SF: APISettings.SF, S: APISettings.S, RO: APISettings.RO
+    };
+
+    let nValue = ime;
+    if (adresa) {
+        nValue += '\n' + adresa; 
+    }
+    qrJsonData.N = nValue;
+
+    return qrJsonData; 
+}
+
+
+async function generateQRCode() {
+    const qrOutput = document.getElementById('qrOutput');
+    const qrImage = document.getElementById('qrImage');
+    const message = document.getElementById('message');
+    const actionButtons = document.getElementById('actionButtons'); 
+    
+    formatIznosFrontend(document.getElementById('iznosInput')); 
+    formatRacunDisplay(document.getElementById('racunInput'));
+
+    const apiUrl = 'https://nbs.rs/QRcode/api/qr/v1/gen?size=500';
+
+    qrOutput.style.display = 'block'; 
+    qrImage.style.display = 'none';
+    actionButtons.style.display = 'none'; 
+    message.className = 'message-box'; 
+    message.textContent = 'Generisanje u toku...';
+
+    const qrData = generateJsonData();
+    
+    if (!qrData) {
+        message.textContent = 'Greška: Račun, Iznos i Ime primaoca su obavezni i moraju biti ispravno uneti!';
+        message.className = 'error message-box';
+        return;
+    }
+
+    try {
+        const finalBodyString = JSON.stringify(qrData);
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: finalBodyString
+        });
+
+        if (response.ok) {
+            const imageBlob = await response.blob();
+            const imageUrl = URL.createObjectURL(imageBlob);
+            
+            qrImage.src = imageUrl;
+            qrImage.style.display = 'block';
+            actionButtons.style.display = 'flex'; 
+            message.textContent = '✅ QR Kod je uspešno generisan!'; 
+            message.className = 'success-highlight message-box';
+            
+            qrOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } else if (response.status === 400) {
+            const errorText = await response.json();
+            message.textContent = `Greška (Status 400 - Loš Zahtev): ${errorText.desc || 'Proverite unesene podatke!'}`;
+            message.className = 'error message-box';
+
+        } else {
+            message.textContent = `Greška prilikom poziva API-ja: HTTP Status ${response.status} (Moguća Greška Servera)`;
+            message.className = 'error message-box';
+        }
+        
+    } catch (e) {
+        message.textContent = `Došlo je do mrežne greške: ${e.message}`;
+        message.className = 'error message-box';
+    }
+}
+
+
+/**
+ * Funkcionalnost za čuvanje slike (download)
+ */
+function saveImage() {
+    const qrImage = document.getElementById('qrImage');
+    
+    if (!qrImage.src || qrImage.style.display === 'none') {
+        alert('Prvo generišite QR kod.');
+        return;
+    }
+    
+    const racun = document.getElementById('racunInput').value.trim();
+    const imePrimaoca = document.getElementById('imePrimaocaInput').value.trim();
+    
+    const cleanIme = cleanDiacritics(imePrimaoca);
+    
+    const cleanRacun18 = formatRacun(racun); 
+    
+    let dashedRacun = '';
+    if (cleanRacun18.length === 18) {
+        dashedRacun = getDashedRacun(cleanRacun18); 
+    } else {
+        dashedRacun = cleanRacun18; 
+    }
+
+    let fileName = 'IPS_QR';
+    
+    if (dashedRacun && cleanIme) {
+        fileName = `${dashedRacun}-${cleanIme}`;
+    } else if (dashedRacun) {
+        fileName = dashedRacun;
+    } else if (cleanIme) {
+        fileName = cleanIme;
+    }
+    
+    fileName = fileName.replace(/-+/g, '-').replace(/^-+|-+$/g, ''); 
+
+    
+    const a = document.createElement('a');
+    a.href = qrImage.src;
+    a.download = `${fileName}.png`; 
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+/**
+ * Funkcionalnost za kopiranje linka u clipboard
+ */
+function copyShareLink() {
+    const qrData = generateJsonData();
+    const message = document.getElementById('message');
+
+    if (!qrData) {
+        message.textContent = 'Greška: Ne mogu da generišem link bez unesenih podataka.';
+        message.className = 'error message-box';
+        return;
+    }
+
+    const encodedPayload = encodeData(qrData);
+
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?payload=${encodedPayload}`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl)
+            .then(() => {
+                // AŽURIRAN TEKST PORUKE
+                message.textContent = '🔗 Link je kopiran u clipboard!'; 
+                message.className = 'success-highlight message-box';
+                setTimeout(() => {
+                    message.textContent = '✅ QR Kod je uspešno generisan!'; 
+                }, 3000);
+            })
+            .catch(err => {
+                console.error('Neuspešno kopiranje linka: ', err);
+                alert('Greška prilikom kopiranja linka. Molimo Vas, kopirajte link ručno:\n' + shareUrl);
+            });
+    } else {
+        prompt("Kopirajte link ručno (Ctrl+C):", shareUrl);
+        message.textContent = '🔗 Link je generisan, molimo Vas kopirajte ga ručno.';
+        message.className = 'success-highlight message-box';
+        setTimeout(() => {
+            message.textContent = '✅ QR Kod je uspešno generisan!'; 
+        }, 3000);
+    }
+}
+
+/**
+ * Funkcionalnost za nativno deljenje preko Web Share API
+ */
+function nativeShare() {
+    const qrData = generateJsonData();
+    const message = document.getElementById('message');
+
+    if (!qrData) {
+        message.textContent = 'Greška: Ne mogu da generišem link bez unesenih podataka.';
+        message.className = 'error message-box';
+        return;
+    }
+    
+    if (!navigator.share) {
+        copyShareLink();
+        return;
+    }
+
+    const encodedPayload = encodeData(qrData);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?payload=${encodedPayload}`;
+    
+    const shareData = {
+        title: 'IPS QR Kod za Plaćanje',
+        text: 'Evo linka za plaćanje preko IPS QR koda. Klikom na link popunjavaju se podaci za plaćanje.',
+        url: shareUrl
+    };
+
+    navigator.share(shareData)
+        .then(() => {
+            message.textContent = '✅ Podaci uspešno podeljeni!';
+            message.className = 'success-highlight message-box';
+            setTimeout(() => {
+                message.textContent = '✅ QR Kod je uspešno generisan!'; 
+            }, 3000);
+        })
+        .catch((error) => {
+            if (error.name === 'AbortError') {
+                return;
+            }
+            console.error('Deljenje nije uspelo:', error);
+            copyShareLink(); 
+        });
+}
+
+
+/**
+ * Logika za automatsko učitavanje QR koda ako je prosleđen payload u URL-u
+ */
+function handleSharedPayload() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const payload = urlParams.get('payload');
+    
+    if (payload) {
+        const decodedData = decodeData(payload);
+        
+        if (decodedData) {
+            populateFormAndGenerateQR(decodedData);
+        } else {
+            document.getElementById('message').textContent = 'Greška prilikom dekodiranja deljenog linka.';
+            document.getElementById('message').className = 'error message-box';
+        }
+        
+        history.replaceState(null, '', window.location.pathname);
+    } else {
+        const iznosInput = document.getElementById('iznosInput');
+        if (iznosInput.value) {
+            formatIznosFrontend(iznosInput);
+        }
+        const racunInput = document.getElementById('racunInput');
+        if (racunInput.value) {
+            formatRacunDisplay(racunInput);
+        }
+    }
+}
+
+/**
+ * Popunjava formu iz dekodiranih podataka i generiše QR kod
+ */
+function populateFormAndGenerateQR(data) {
+    if (!data.R || !data.I || !data.N) return; 
+
+    const racunInput = document.getElementById('racunInput');
+    racunInput.value = data.R;
+    formatRacunDisplay(racunInput); 
+
+    const iznosValue = data.I.replace('RSD', '').replace(',', '.');
+    const iznosInput = document.getElementById('iznosInput');
+    iznosInput.value = parseFloat(iznosValue).toLocaleString('sr-RS', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    });
+    
+    const nParts = data.N.split('\n');
+    document.getElementById('imePrimaocaInput').value = nParts[0].trim();
+    if (nParts.length > 1) {
+        document.getElementById('adresaPrimaocaInput').value = nParts[1].trim();
+    } else {
+        document.getElementById('adresaPrimaocaInput').value = '';
+    }
+
+    generateQRCode();
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    handleSharedPayload();
+});
+</script>
+
+</body>
+</html>
