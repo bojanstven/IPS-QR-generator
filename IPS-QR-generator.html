@@ -6,11 +6,15 @@
     <title>IPS QR Kod Generator</title>
     <link rel="icon" type="image/x-icon" href="https://ips.nbs.rs/favicon.ico">
     
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        /* MODERN UI STILOVI */
+        /* ================================================= */
+        /* V1.3.2 - BORDER COLOR FIX & COMPACTNESS OPTIMIZATION */
+        /* ================================================= */
         :root {
+            /* IPS QR Generator V1.3 Variables */
             --primary-dark: #21425d; 
             --primary-red: #c82333; 
             --light-blue: #007bff;
@@ -18,14 +22,28 @@
             --background-grey: #f0f2f5;
             --success-green: #155724;
             --success-bg: #d4edda;
-            --border-color: #e0e0e0;
+            --border-color: #e0e0e0; /* Source of default border color */
             --input-focus: #b8d6ff;
+            
+            /* Floating Label V1.3.2 Variables */
+            --did-blue: var(--light-blue);
+            --did-border-default: var(--border-color); /* Fiksna i uniformna boja */
+            --did-label-color-float: #777;
+            --did-text-color: #333;
+            --did-prefix-color: #777; 
+            --did-form-bg: #fff;
+            
+            --field-height: 40px;
+            --input-font-size: 16px; 
+            --label-float-size: 12px; 
+            --label-initial-padding-top: 10px; 
+            
+            --prefix-width: 40px; 
+            --prefix-font-size: 14px; 
+            --alignment-offset: 15px;
         }
         
-        /* FIKS ZA SCROLLING / ANIMACIJE */
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             padding: 20px; 
@@ -41,8 +59,7 @@
             border-radius: 12px; 
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
         }
-        
-        /* NOVI STIL ZA CENTRALIZACIJU LOGO I TEKSTA */
+
         .header-content {
             display: flex;
             align-items: center; 
@@ -50,13 +67,11 @@
             gap: 15px; 
             margin-bottom: 20px;
         }
-
         .header-text {
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-
         h1 { 
             color: var(--primary-dark); 
             text-align: left; 
@@ -64,8 +79,6 @@
             font-size: 26px; 
             font-weight: 600; 
         }
-        
-        /* FIKS: Stilizacija podnaslova */
         .subtitle {
             font-size: 14px;
             color: #6c757d; 
@@ -73,81 +86,183 @@
             line-height: 1.2;
             font-weight: 400;
         }
-        .subtitle strong {
-             font-weight: 600; 
-        }
-        .subtitle .separator {
-            margin: 0 4px; 
-        }
-
-
-        /* STILIZACIJA LOGOA */
+        .subtitle strong { font-weight: 600; }
+        .subtitle .separator { margin: 0 4px; }
         .logo-img {
             height: 70px; 
             width: auto; 
             filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.25)); 
         }
         
-        /* FORME */
-        .form-group { margin-bottom: 12px; text-align: left; }
-        .form-group label { 
-            display: block; 
-            font-weight: 500; 
-            margin-bottom: 4px; 
-            color: #333;
-        }
-        .label-hint { font-weight: normal; color: #666; font-size: 14px; }
-
-        .form-group input, .form-group textarea { 
-            width: 100%; 
-            padding: 10px 12px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 16px; 
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: var(--light-blue);
-            box-shadow: 0 0 0 3px var(--input-focus);
-            outline: none;
+        /* ================================================= */
+        /* 1. FLOATING LABEL CORE STYLES                     */
+        /* ================================================= */
+        .did-floating-label-content {	
+            position:relative;	
+            /* Promenjeno sa 25px na 20px (Zahtev 3) */
+            margin-bottom:20px; 
         }
 
-        .required::after { content: " *"; color: var(--primary-red); font-weight: bold; }
+        .did-floating-label {
+            color: var(--did-border-default);	
+            font-weight: normal;
+            position:absolute;
+            pointer-events:none;
+            padding:0 5px; 
+            background:var(--did-form-bg); 
+            transition:0.2s ease all;	
+            z-index: 10;
+            
+            font-size: var(--input-font-size); 
+            top: var(--label-initial-padding-top); 
+            left: var(--alignment-offset); 
+        }
 
-        /* DVA POLJA U ISTOM REDU (Desktop/Tablet) */
+        .did-floating-input {
+            font-size: var(--input-font-size);
+            display:block;
+            width:100%;
+            height: var(--field-height);
+            /* Sadrži shorthand border: 1px solid var(--did-border-default) */
+            padding: 0 15px; 
+            background: var(--did-form-bg);
+            color: var(--did-text-color);
+            border: 1px solid var(--did-border-default);
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, padding 0.2s ease, border-radius 0.2s ease;
+        }
+
+        /* Floating Label & Input Focus/Filled State (Standard Input) */
+        .did-floating-input:focus {
+            outline:none;
+            border-color: var(--did-blue);
+        }
+        .did-floating-input:focus ~ .did-floating-label {
+            color: var(--did-blue);
+        }
+        
+        .did-floating-input:focus ~ .did-floating-label,
+        .did-floating-input:not(:placeholder-shown) ~ .did-floating-label,
+        .did-floating-label-content.has-content .did-floating-label {
+            top:-8px; 
+            font-size: var(--label-float-size); 
+            font-weight: 600;
+            left: var(--alignment-offset); 
+            padding:0 5px; 
+        }
+        .did-floating-input:not(:placeholder-shown) ~ .did-floating-label,
+        .did-floating-label-content.has-content .did-floating-label {
+            color: var(--did-label-color-float);
+        }
+        
+        .did-floating-label .asterisk {
+            color: var(--primary-red);
+            margin-left: 2px;
+            font-size: 1em;
+        }
+        
+        /* ================================================= */
+        /* 2. INPUT GROUP (Prefix/DIN) STYLING (FIKSIRANO)   */
+        /* ================================================= */
+        .input-group {
+            display: flex;
+        }
+        
+        .input-group-text {
+            width: 0;
+            padding: 0;
+            opacity: 0;
+            
+            display: flex;
+            align-items: center;
+            font-weight: 600; 
+            height: var(--field-height);
+            color: var(--did-prefix-color); 
+            font-size: var(--prefix-font-size); 
+            white-space: nowrap;
+            background-color: var(--did-form-bg);
+            
+            /* Osnovni border je transparentan */
+            border: 1px solid transparent; 
+            border-radius: 4px; 
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            z-index: 1; 
+        }
+
+        .input-group .did-floating-input {
+            flex-grow: 1;
+            border-radius: 4px; 
+            border-left: 1px solid var(--did-border-default);
+            padding-left: 15px;
+            min-width: 0;
+        }
+
+        /* === FOCUS/FILLED STATE: SHOW PREFIX AND ADJUST INPUT === */
+
+        /* 1. Show the prefix box and give it its proper dimensions */
+        .input-group:focus-within .input-group-text,
+        .input-group.has-content .input-group-text {
+            width: var(--prefix-width); 
+            padding: 0 5px 0 10px; 
+            opacity: 1;
+            
+            /* **** FIKS ZA BORDER COLOR NEUSAGLAŠENOST (Zahtev 2) **** */
+            /* Koristimo eksplicitne bordere umesto shorthand-a da bismo osigurali 
+               da se stil podudara sa susednim input poljem. */
+            border-top: 1px solid var(--did-border-default);
+            border-bottom: 1px solid var(--did-border-default);
+            border-left: 1px solid var(--did-border-default);
+            border-right: none; 
+
+            border-radius: 4px 0 0 4px; 
+        }
+        
+        /* Primena plavog bordera na prefix-text u fokusu */
+        .input-group:focus-within .input-group-text {
+            border-color: var(--did-blue);
+            border-right: none;
+        }
+        
+        /* Usklađivanje bordera input polja kada je popunjeno (has-content) */
+        .input-group.has-content .did-floating-input {
+            border-color: var(--did-border-default); 
+        }
+
+        /* 2. Adjust Input to join the prefix box */
+        .input-group:focus-within .did-floating-input,
+        .input-group.has-content .did-floating-input {
+            border-radius: 0 4px 4px 0; 
+            border-left: 0;
+            padding-left: 5px; 
+        }
+        
+        /* 3. FIX: Ensure the label uses the standard left position when large/inside */
+        .input-group .did-floating-input:placeholder-shown ~ .did-floating-label,
+        .input-group:not(.has-content) .did-floating-input:not(:focus) ~ .did-floating-label {
+            left: var(--alignment-offset) !important; 
+            padding: 0 5px; 
+        }
+        
+        /* Focus state border cleanup for input (bitno da bude poslednje za fokus) */
+        .input-group:focus-within .did-floating-input {
+            border-color: var(--did-blue); 
+        }
+        
+        /* ================================================= */
+        /* OLD/RETAINED STYLES (Non-Conflicting) */
+        /* ================================================= */
+        
         .two-fields-row {
             display: flex;
             gap: 15px; 
         }
-        .two-fields-row .form-group {
+        .two-fields-row .did-floating-label-content {
             flex: 1; 
         }
-
-        /* NOVI STIL ZA FIKSNI RSD */
-        .input-with-suffix {
-            position: relative;
-            display: flex; 
-            align-items: center; 
-        }
-
-        .input-with-suffix input {
-            padding-right: 70px; /* Povećan padding zbog separatora */
-        }
-
-        .input-suffix {
-            position: absolute;
-            right: 12px;
-            color: #999; 
-            font-size: 16px; 
-            font-weight: 500;
-            pointer-events: none; 
-            /* NOVO: Vizuelni separator */
-            border-left: 1px solid var(--border-color); 
-            padding-left: 12px; 
-        }
         
-        /* GLAVNO DUGME ZA GENERISANJE */
+        /* GLAVNO DUGME ZA GENERISANJE (Fiksirano - Zahtev 4) */
         button { 
             padding: 12px 15px; 
             background-color: var(--light-blue); 
@@ -158,13 +273,13 @@
             font-size: 16px; 
             font-weight: bold;
             width: 100%; 
-            margin-top: 20px; 
-            margin-bottom: 20px; 
+            margin-top: 5px; 
+            margin-bottom: 5px; 
             transition: background-color 0.2s, box-shadow 0.2s;
         }
         button:hover { 
             background-color: var(--darker-blue); 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
         
         /* QR OUTPUT CARD (Kartica za rezultat) */
@@ -173,13 +288,12 @@
             margin-top: 0px; 
             padding: 0px; 
             background: #fff;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--did-border-default); /* Koristi uniformnu boju */
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             overflow: hidden; 
             margin-bottom: 5px; 
         }
-        
         #qrImage { 
             max-width: 100%; 
             height: auto; 
@@ -195,7 +309,6 @@
             margin-bottom: 0; 
             padding: 10px;
         }
-
         .error { 
             color: #721c24; 
             background-color: #f8d7da; 
@@ -228,7 +341,6 @@
             border: none; 
             gap: 8px; 
         }
-        
         .action-buttons-row button {
             flex: 1; 
             margin: 0; 
@@ -239,7 +351,7 @@
             color: white; 
             border: 1px solid var(--light-blue);
             border-radius: 6px;
-            transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s ease; /* DODATO TRANSFORM TRANSITION */
+            transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s ease; 
             width: 100%; 
             margin-top: 0; 
             margin-bottom: 0; 
@@ -248,17 +360,14 @@
             justify-content: center;
             gap: 8px; 
         }
-        
         .action-buttons-row button:hover {
             background-color: var(--darker-blue); 
             color: white;
             border-color: var(--darker-blue);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); 
         }
-        
-        /* NOVO: Active/Pressed State za Akcione Dugmiće (Suggestion 1) */
         .action-buttons-row button:active {
-            background-color: #0056b3; /* Još tamnija plava */
+            background-color: #0056b3; 
             transform: translateY(1px); 
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
@@ -267,11 +376,7 @@
         /* MEDIA QUERY ZA MOBILNE UREĐAJE (< 600px) */
         /* ================================================= */
         @media (max-width: 600px) {
-            body {
-                padding: 0; 
-                background-color: white; 
-            }
-
+            body { padding: 0; background-color: white; }
             .container {
                 max-width: 100%; 
                 margin: 0 auto; 
@@ -279,21 +384,13 @@
                 border-radius: 0; 
                 box-shadow: none; 
             }
-            
             .two-fields-row {
                 flex-direction: column; 
                 gap: 0; 
             }
-            
-            .form-group { margin-bottom: 10px; }
-            button { margin-top: 15px; margin-bottom: 15px; }
-            
-            .logo-img {
-                height: 55px;
-            }
-            h1 {
-                font-size: 24px;
-            }
+            button { margin-top: 5px; margin-bottom: 5px; }
+            .logo-img { height: 55px; }
+            h1 { font-size: 24px; }
         }
     </style>
 </head>
@@ -304,38 +401,69 @@
         <img src="IPS-logo.svg" alt="IPS Logo" class="logo-img">
         <div class="header-text">
             <h1>IPS QR generator</h1> 
-            <p class="subtitle">v<strong>1.2</strong> <span class="separator">•</span> by <strong>Bojan Mijić</strong></p> </div>
+            <p class="subtitle">v<strong>1.3.2</strong> <span class="separator">•</span> by <strong>Bojan Mijić</strong></p> 
+        </div>
     </a>
     
-    <div class="form-group">
-        <label for="racunInput" class="required">Račun primaoca <span class="label-hint">(npr. 205-140468-52):</span></label>
-        <input type="tel" id="racunInput" value="265-676766-16" placeholder="Broj računa" oninput="clearFormatting(this)" onblur="formatRacunDisplay(this)">
+    <div class="did-floating-label-content">
+        <input 
+            class="did-floating-input" 
+            type="tel" 
+            id="racunInput" 
+            value="265-676766-16" 
+            placeholder=" "
+            oninput="clearFormatting(this)" 
+            onblur="formatRacunDisplay(this)"
+        >
+        <label class="did-floating-label" for="racunInput">
+            Račun primaoca <span class="asterisk">*</span>
+        </label>
     </div>
 
-    <div class="form-group">
-        <label for="iznosInput" class="required">Iznos: <span class="label-hint">(npr. 1.020,00 RSD):</span></label>
-        <div class="input-with-suffix">
-            <input 
-                type="text" 
-                id="iznosInput" 
-                value="1020,00" 
-                placeholder="Iznos u formatu 1.020,00" 
-                inputmode="decimal" 
-                pattern="[0-9]*[.,]?[0-9]*"
-                onblur="formatIznosFrontend(this)" 
-                onfocus="clearFormatting(this)"
-            >
-            <span class="input-suffix">RSD</span> </div>
+    <div class="did-floating-label-content input-group" id="iznosGroup">
+        <span class="input-group-text">din</span> 
+        <input 
+            class="did-floating-input" 
+            type="text" 
+            id="iznosInput" 
+            value="1020,00" 
+            placeholder=" "
+            inputmode="decimal" 
+            pattern="[0-9]*[.,]?[0-9]*"
+            onblur="formatIznosFrontend(this); handleIznosState(this, 'blur')" 
+            onfocus="clearFormatting(this)"
+            oninput="handleIznosState(this, 'input')" 
+        >
+        <label class="did-floating-label" for="iznosInput">
+            Iznos <span class="asterisk">*</span>
+        </label>
     </div>
     
     <div class="two-fields-row">
-        <div class="form-group">
-            <label for="imePrimaocaInput" class="required">Ime primaoca:</label>
-            <input type="text" id="imePrimaocaInput" value="Bojan Mijić" placeholder="Ime/Naziv firme">
+        <div class="did-floating-label-content">
+            <input 
+                class="did-floating-input" 
+                type="text" 
+                id="imePrimaocaInput" 
+                value="Bojan Mijić" 
+                placeholder=" "
+            >
+            <label class="did-floating-label" for="imePrimaocaInput">
+                Ime primaoca <span class="asterisk">*</span>
+            </label>
         </div>
-        <div class="form-group">
-            <label for="adresaPrimaocaInput">Adresa primaoca:</label>
-            <input type="text" id="adresaPrimaocaInput" value="Nikolaja Gogolja 94" placeholder="Adresa">
+        
+        <div class="did-floating-label-content">
+            <input 
+                class="did-floating-input" 
+                type="text" 
+                id="adresaPrimaocaInput" 
+                value="Nikolaja Gogolja 94" 
+                placeholder=" "
+            >
+            <label class="did-floating-label" for="adresaPrimaocaInput">
+                Adresa primaoca
+            </label>
         </div>
     </div>
 
@@ -359,24 +487,29 @@
             Podeli link 
         </button>
     </div>
-    </div>
+</div>
 
 <script>
 const APISettings = {
     K: "PR", V: "01", C: "1", SF: "289", S: "Uplata na račun", RO: "0000" 
 };
 
-/**
- * Enkodira JavaScript objekat u Base64 string.
- */
+window.handleIznosState = function(input, eventType) {
+    const container = input.closest('.did-floating-label-content');
+    const hasValue = input.value.trim() !== '';
+
+    if (hasValue) {
+        container.classList.add('has-content');
+    } else if (eventType === 'blur' || eventType === 'input') {
+        container.classList.remove('has-content');
+    }
+};
+
 function encodeData(data) {
     const jsonString = JSON.stringify(data);
     return btoa(encodeURIComponent(jsonString));
 }
 
-/**
- * Dekodira Base64 string nazad u JavaScript objekat.
- */
 function decodeData(base64String) {
     try {
         const jsonString = decodeURIComponent(atob(base64String));
@@ -407,9 +540,6 @@ function cleanDiacritics(text) {
 }
 
 
-/**
- * Pomoćna funkcija za uklanjanje frontend formatiranja (tačke/zarezi) sa Iznosa.
- */
 function clearFormatting(inputElement) {
     if (inputElement.id === 'iznosInput') {
         let value = inputElement.value.replace(/\./g, ''); 
@@ -420,9 +550,7 @@ function clearFormatting(inputElement) {
     }
 }
 
-/**
- * Formatira iznos za prikaz na frontendu (npr. 1234.56 postaje 1.234,56)
- */
+
 function formatIznosFrontend(inputElement) {
     let value = inputElement.value;
     
@@ -457,7 +585,10 @@ function formatRacun(input) {
     const digits = input.replace(/[^0-9]/g, ''); 
     
     if (digits.length < 5) {
-        return digits.padEnd(5, '0').substring(0, 5);
+        if (input.trim() === '') {
+            return '';
+        }
+        return digits.padEnd(5, '0').substring(0, 5); 
     }
 
     const bankCode = digits.substring(0, 3);
@@ -493,8 +624,15 @@ function getDashedRacun(clean18Digits) {
  * Formatira broj računa za PRIKAZ na frontendu (sa crticama) - pokreće se na onblur.
  */
 function formatRacunDisplay(inputElement) {
-    const clean18Digits = formatRacun(inputElement.value);
+    const originalValue = inputElement.value; 
+    const clean18Digits = formatRacun(originalValue);
     
+    if (clean18Digits === '') {
+        inputElement.value = '';
+        inputElement.closest('.did-floating-label-content').classList.remove('has-content');
+        return;
+    }
+
     if (clean18Digits.length !== 18) {
         inputElement.value = clean18Digits;
         return;
@@ -528,6 +666,9 @@ function generateJsonData() {
     let formattedIznos = `RSD${parsedIznos.toFixed(2).replace('.', ',')}`;
     
     const formattedRacun = formatRacun(racun);
+    if (formattedRacun.length !== 18) {
+        if (formattedRacun !== '') return null; 
+    }
     
     let qrJsonData = {
         K: APISettings.K, V: APISettings.V, C: APISettings.C, R: formattedRacun,
@@ -607,9 +748,6 @@ async function generateQRCode() {
 }
 
 
-/**
- * Funkcionalnost za čuvanje slike (download)
- */
 function saveImage() {
     const qrImage = document.getElementById('qrImage');
     
@@ -654,9 +792,6 @@ function saveImage() {
     document.body.removeChild(a);
 }
 
-/**
- * Funkcionalnost za kopiranje linka u clipboard
- */
 function copyShareLink() {
     const qrData = generateJsonData();
     const message = document.getElementById('message');
@@ -695,9 +830,6 @@ function copyShareLink() {
     }
 }
 
-/**
- * Funkcionalnost za nativno deljenje preko Web Share API
- */
 function nativeShare() {
     const qrData = generateJsonData();
     const message = document.getElementById('message');
@@ -741,9 +873,6 @@ function nativeShare() {
 }
 
 
-/**
- * Logika za automatsko učitavanje QR koda ako je prosleđen payload u URL-u
- */
 function handleSharedPayload() {
     const urlParams = new URLSearchParams(window.location.search);
     const payload = urlParams.get('payload');
@@ -760,9 +889,11 @@ function handleSharedPayload() {
         
         history.replaceState(null, '', window.location.pathname);
     } else {
+        // Initial state for inputs
         const iznosInput = document.getElementById('iznosInput');
         if (iznosInput.value) {
             formatIznosFrontend(iznosInput);
+            handleIznosState(iznosInput, 'load'); 
         }
         const racunInput = document.getElementById('racunInput');
         if (racunInput.value) {
@@ -771,9 +902,6 @@ function handleSharedPayload() {
     }
 }
 
-/**
- * Popunjava formu iz dekodiranih podataka i generiše QR kod
- */
 function populateFormAndGenerateQR(data) {
     if (!data.R || !data.I || !data.N) return; 
 
@@ -787,6 +915,7 @@ function populateFormAndGenerateQR(data) {
         minimumFractionDigits: 2, 
         maximumFractionDigits: 2 
     });
+    handleIznosState(iznosInput, 'load'); 
     
     const nParts = data.N.split('\n');
     document.getElementById('imePrimaocaInput').value = nParts[0].trim();
