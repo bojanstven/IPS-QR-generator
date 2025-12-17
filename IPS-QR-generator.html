@@ -43,6 +43,7 @@
             --alignment-offset: 15px;
         }
         
+        /* SCROLL BEHAVIOR ZA SMOOTH SCROLL */
         html { scroll-behavior: smooth; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -230,7 +231,7 @@
         }
 
         /* ================================================= */
-        /* 3. CLEAR BUTTON STYLING                           */
+        /* 3. CLEAR BUTTON STYLING (V1.3.8)    */
         /* ================================================= */
         .clear-input-wrapper {
             position: absolute;
@@ -276,9 +277,8 @@
 
 
         /* ================================================= */
-        /* OLD/RETAINED STYLES */
+        /* 4. TWO-FIELDS ROW LAYOUT (V1.3.9)      */
         /* ================================================= */
-        
         .two-fields-row {
             display: flex;
             gap: 15px; 
@@ -414,48 +414,50 @@
         <img src="IPS-logo.svg" alt="IPS Logo" class="logo-img">
         <div class="header-text">
             <h1>IPS QR generator</h1> 
-            <p class="subtitle">v<strong>1.3.8</strong> <span class="separator">•</span> by <strong>Bojan Mijić</strong></p> 
+            <p class="subtitle">v<strong>1.3.10</strong> <span class="separator">•</span> by <strong>Bojan Mijić</strong></p> 
         </div>
     </a>
     
-    <div class="did-floating-label-content">
-        <input 
-            class="did-floating-input" 
-            type="tel" 
-            id="racunInput" 
-            value="265-676766-16" 
-            placeholder=" "
-            oninput="clearFormatting(this); updateClearButton(this); sanitizeInput(this, 'racun')" 
-            onblur="formatRacunDisplay(this); updateClearButton(this)"
-            onfocus="updateClearButton(this)"
-        >
-        <label class="did-floating-label" for="racunInput">
-            Račun primaoca <span class="asterisk">*</span>
-        </label>
-        <div class="clear-input-wrapper" onmousedown="clearInput('racunInput', event)" title="Obriši polje">
-            <i class="fa-solid fa-circle-xmark"></i>
+    <div class="two-fields-row">
+        <div class="did-floating-label-content">
+            <input 
+                class="did-floating-input" 
+                type="tel" 
+                id="racunInput" 
+                value="265-676766-16" 
+                placeholder=" "
+                oninput="clearFormatting(this); updateClearButton(this); sanitizeInput(this, 'racun')" 
+                onblur="formatRacunDisplay(this); updateClearButton(this)"
+                onfocus="updateClearButton(this)"
+            >
+            <label class="did-floating-label" for="racunInput">
+                Račun primaoca <span class="asterisk">*</span>
+            </label>
+            <div class="clear-input-wrapper" onmousedown="clearInput('racunInput', event)" title="Obriši polje">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
         </div>
-    </div>
 
-    <div class="did-floating-label-content input-group" id="iznosGroup">
-        <span class="input-group-text">din</span> 
-        <input 
-            class="did-floating-input" 
-            type="text" 
-            id="iznosInput" 
-            value="1020,00" 
-            placeholder=" "
-            inputmode="decimal" 
-            pattern="[0-9]*[.,]?[0-9]*"
-            onblur="formatIznosFrontend(this); handleIznosState(this, 'blur'); updateClearButton(this)" 
-            onfocus="clearFormatting(this); updateClearButton(this)"
-            oninput="handleIznosState(this, 'input'); updateClearButton(this); sanitizeInput(this, 'iznos')" 
-        >
-        <label class="did-floating-label" for="iznosInput">
-            Iznos <span class="asterisk">*</span>
-        </label>
-        <div class="clear-input-wrapper" onmousedown="clearInput('iznosInput', event)" title="Obriši polje">
-            <i class="fa-solid fa-circle-xmark"></i>
+        <div class="did-floating-label-content input-group" id="iznosGroup">
+            <span class="input-group-text">din</span> 
+            <input 
+                class="did-floating-input" 
+                type="text" 
+                id="iznosInput" 
+                value="1020,00" 
+                placeholder=" "
+                inputmode="decimal" 
+                pattern="[0-9]*[.,]?[0-9]*"
+                onblur="formatIznosFrontend(this); handleIznosState(this, 'blur'); updateClearButton(this)" 
+                onfocus="clearFormatting(this); updateClearButton(this)"
+                oninput="handleIznosState(this, 'input'); updateClearButton(this); sanitizeInput(this, 'iznos')" 
+            >
+            <label class="did-floating-label" for="iznosInput">
+                Iznos <span class="asterisk">*</span>
+            </label>
+            <div class="clear-input-wrapper" onmousedown="clearInput('iznosInput', event)" title="Obriši polje">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
         </div>
     </div>
     
@@ -532,21 +534,12 @@ const APISettings = {
 };
 
 // =========================================================================
-// V1.3.8 FIX: KONTROLNI PREKIDAČ I PREVENCIJA FOCUS SHIFT-A
+// RETAINED FIXES (V1.3.8)
 // =========================================================================
 
-// Globalni prekidač koji signalizira onblur/formatter funkcijama da stanu.
 let isClearing = false;
 
-/**
- * Briše sadržaj input polja i obnavlja UI stanje.
- * Koristi globalnu zastavicu i Event Prevention.
- * @param {string} inputId ID input polja koje se briše.
- * @param {Event} event Događaj koji je pokrenuo brisanje (onmousedown).
- */
 window.clearInput = function(inputId, event) {
-    // 0. Najvažniji korak: Sprečava da klik miša (onmousedown) pomeri fokus 
-    // na dugme za brisanje i time pokrene onblur na inputu pre nego što obrišemo vrednost.
     if (event) {
         event.preventDefault(); 
         event.stopPropagation();
@@ -554,24 +547,16 @@ window.clearInput = function(inputId, event) {
     
     const input = document.getElementById(inputId);
     if (input) {
-        
-        // 1. Postavi zastavicu
         isClearing = true;
-        
         const container = input.closest('.did-floating-label-content');
         
-        // 2. Očisti vrednost polja (Mora se desiti pre blur-a)
         input.value = ''; 
         
-        // 3. Ručno ukloni UI klase
         container.classList.remove('has-content'); 
         container.classList.remove('show-clear-button');
         
-        // 4. Dispatch event (za handleIznosState)
         input.dispatchEvent(new Event('input', { bubbles: true })); 
         
-        // 5. Ukloni fokus i isključi zastavicu sa odlaganjem. 
-        // Pošto smo blokirali onmousedown da pomeri fokus, mi ga sada ručno pomeramo.
         setTimeout(() => {
             input.blur(); 
             isClearing = false;
@@ -580,7 +565,6 @@ window.clearInput = function(inputId, event) {
 };
 
 window.handleIznosState = function(input, eventType) {
-    // IGNORIŠI AKO SE POLJE UPRAVO BRIŠE
     if (isClearing) return;
     
     const container = input.closest('.did-floating-label-content');
@@ -675,7 +659,6 @@ function cleanDiacritics(text) {
 
 
 function clearFormatting(inputElement) {
-    // IGNORIŠI AKO SE POLJE UPRAVO BRIŠE
     if (isClearing) return;
     
     if (inputElement.id === 'iznosInput') {
@@ -689,7 +672,6 @@ function clearFormatting(inputElement) {
 
 
 function formatIznosFrontend(inputElement) {
-    // IGNORIŠI AKO SE POLJE UPRAVO BRIŠE
     if (isClearing) return;
     
     let value = inputElement.value;
@@ -762,7 +744,6 @@ function getDashedRacun(clean18Digits) {
 
 
 function formatRacunDisplay(inputElement) {
-    // IGNORIŠI AKO SE POLJE UPRAVO BRIŠE
     if (isClearing) return;
     
     const originalValue = inputElement.value; 
@@ -805,7 +786,6 @@ function generateJsonData() {
         return null; 
     }
     
-    // Maksimalni iznos limit (300.000 RSD)
     if (parsedIznos > 300000) {
         return { error: 'Iznos prelazi maksimalno dozvoljenih 300.000 RSD za instant plaćanje (IPS NBS).' }; 
     }
@@ -882,7 +862,14 @@ async function generateQRCode() {
             message.textContent = '✅ QR Kod je uspešno generisan!'; 
             message.className = 'success-highlight message-box';
             
-            qrOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // =========================================================
+            // V1.3.10 FIX: DELAYED SMOOTH SCROLL TO QR CODE OUTPUT
+            // Odlaže skrolovanje za 100ms, dajući pretraživaču vreme da 
+            // izračuna konačnu poziciju prikazanog QR koda.
+            // =========================================================
+            setTimeout(() => {
+                 qrOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100); 
 
         } else if (response.status === 400) {
             const errorText = await response.json();
