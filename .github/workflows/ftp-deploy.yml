@@ -18,6 +18,7 @@ jobs:
       - name: Upload all files via FTP
         run: |
           lftp -c "
+            set ssl:verify-certificate no
             open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}
             mirror -R ./ /home/mamino/nebo.co.rs/ips --ignore-time --parallel=2 --verbose
           "
