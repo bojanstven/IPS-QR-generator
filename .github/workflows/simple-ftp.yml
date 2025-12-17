@@ -17,13 +17,13 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      # Step 3: Upload files to your exact folder
+      # Step 3: Upload files directly to your FTP working folder
       - name: FTP upload
         run: |
           lftp -c "
             set ssl:verify-certificate no
             open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}
-            cd /home/mamino/nebo.co.rs/ips
+            cd /          # FTP root is already your target folder
             put index.html
             put IPS-logo.svg
           "
