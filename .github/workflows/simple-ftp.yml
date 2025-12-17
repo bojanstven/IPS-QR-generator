@@ -1,0 +1,29 @@
+name: Simple FTP Upload
+
+on:
+  push:
+    branches:
+      - main  # trigger on pushes to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repo
+      - uses: actions/checkout@v4
+
+      # Step 2: Install lftp
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      # Step 3: Upload files to your exact folder
+      - name: FTP upload
+        run: |
+          lftp -c "
+            set ssl:verify-certificate no
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}
+            cd /home/mamino/nebo.co.rs/ips
+            put index.html
+            put IPS-logo.svg
+          "
