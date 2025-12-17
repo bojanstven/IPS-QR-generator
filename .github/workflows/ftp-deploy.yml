@@ -1,0 +1,23 @@
+name: Simple FTP Copy-Paste
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Upload all files via FTP
+        run: |
+          lftp -c "
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}
+            mirror -R ./ /home/mamino/nebo.co.rs/ips --ignore-time --parallel=2 --verbose
+          "
